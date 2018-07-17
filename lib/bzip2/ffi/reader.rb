@@ -203,6 +203,22 @@ module Bzip2
         ObjectSpace.define_finalizer(self, self.class.send(:finalize, stream))
       end
 
+      # Returns `true` to indicate that decompression is complete, `false` if
+      # further calls to {#read} will return more data.
+      #
+      # @return [Boolean] `true` if decompression is complete
+      def eof?
+        @out_eof
+      end
+      alias_method :eof, :eof?
+
+      # Returns the number of uncompressed bytes read
+      #
+      # @return [Integer] the number of uncompressed bytes read.
+      def pos
+        (stream[:total_out_hi32] << 32) + stream[:total_out_lo32]
+      end
+
       # Ends decompression and closes the {Reader}.
       #
       # If the {open} method is used with a block, it is not necessary to call

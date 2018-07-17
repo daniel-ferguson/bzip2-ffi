@@ -22,6 +22,7 @@ class ReaderTest < Minitest::Test
     File.open(fixture_path(fixture), 'rb') do |input|
       if read_size
         loop do
+          last_reader_pos = reader.pos
           buffer = input.read(read_size)
           
           if use_outbuf          
@@ -30,6 +31,7 @@ class ReaderTest < Minitest::Test
 
             if decompressed
               assert_same(outbuf, decompressed)
+              assert_equal(decompressed.bytesize, reader.pos - last_reader_pos)
             else
               assert_equal('', outbuf)
             end
@@ -40,8 +42,10 @@ class ReaderTest < Minitest::Test
           if buffer
             assert_same(Encoding::ASCII_8BIT, decompressed.encoding)
             assert_equal(buffer, decompressed)
+            assert_equal(decompressed.size, reader.pos - last_reader_pos)
           else
             assert_nil(decompressed)
+            assert_equal(true, reader.eof?)
             break
           end
         end        
@@ -59,10 +63,12 @@ class ReaderTest < Minitest::Test
         refute_nil(decompressed)
         assert_same(Encoding::ASCII_8BIT, decompressed.encoding)
         assert_equal(buffer, decompressed)      
+        assert_equal(decompressed.bytesize, reader.pos)
       end
 
       assert_nil(reader.read(1))
       assert_equal(0, reader.read.bytesize)
+      assert_equal(true, reader.eof?)
     end
   end
 
